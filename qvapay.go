@@ -13,6 +13,10 @@ import (
 )
 
 func NewClient(
+	// APP_ID
+	appID string,
+	// SECRET_ID
+	secretID string,
 	// mtss API's base url
 	baseURL string,
 	// skipVerify
@@ -23,6 +27,8 @@ func NewClient(
 ) Client {
 
 	c := &client{
+		appID:      appID,
+		secretID:   secretID,
 		url:        baseURL,
 		httpClient: httpClient,
 		debug:      debug,
@@ -120,8 +126,8 @@ func (c *client) CreateInvoice(ctx context.Context, amount float32,
 // 	"to": 9,
 // 	"total": 9
 // 	}
-func (c *client) GetTransactions(ctx context.Context) error {
-	return nil
+func (c *client) GetTransactions(ctx context.Context) (TransactionsResponse, error) {
+	return TransactionsResponse{}, nil
 }
 
 // GetTransaction ...
@@ -169,8 +175,8 @@ func (c *client) GetTransactions(ctx context.Context) error {
 // 		"logo": "profiles/zV93I93mbarZo0fKgwGcpWFWDn41UYfAgj7wNCbf.jpg"
 // 	}
 // }
-func (c *client) GetTransaction(ctx context.Context, id string) error {
-	return nil
+func (c *client) GetTransaction(ctx context.Context, id string) (TransactionReponse, error) {
+	return TransactionReponse{}, nil
 }
 
 // GetBalance ...
@@ -180,7 +186,7 @@ func (c *client) GetTransaction(ctx context.Context, id string) error {
 // {
 // 	"66.00"
 // }
-func (c *client) GetBalance(ctx context.Context) (BalanceQvaPay, error) {
+func (c *client) GetBalance(ctx context.Context) (BalanceQvaPayResponse, error) {
 	return "", nil
 }
 
