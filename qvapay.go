@@ -4,12 +4,15 @@ import (
 	"bytes"
 	"context"
 	"crypto/tls"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"net/http/httputil"
+	"net/url"
+	"strings"
 )
 
 func NewClient(
@@ -65,8 +68,35 @@ func NewClient(
 // 	"active":1,
 // 	"enabled":1
 // }
-func (c *client) GetInfo(ctx context.Context) (AppInfoResponse, error) {
-	return AppInfoResponse{}, nil
+func (c *client) GetInfo(ctx context.Context) (*AppInfoResponse, error) {
+
+	requestUrl, err := url.Parse(fmt.Sprintf("%s/%s/%s", c.url, ApiVersion, RouteInfo))
+	if err != nil {
+		return nil, err
+	}
+	v := url.Values{}
+	v.Set("app_id", c.appID)
+	v.Add("app_secret", c.secretID)
+	requestUrl.RawQuery = v.Encode()
+
+	status, res, err := c.apiCall(
+		ctx,
+		http.MethodGet,
+		requestUrl.String(),
+		nil,
+	)
+	if err != nil {
+		return nil, err
+	}
+	if status != http.StatusOK {
+		return nil, fmt.Errorf("unexpected response status %d: %q", status, res)
+	}
+	result := AppInfoResponse{}
+	err = json.NewDecoder(strings.NewReader(res)).Decode(&result)
+	if err != nil {
+		return nil, fmt.Errorf("decoding error for data %s: %v", res, err)
+	}
+	return &result, nil
 }
 
 // CreateInvoice ...
@@ -88,8 +118,38 @@ func (c *client) GetInfo(ctx context.Context) (AppInfoResponse, error) {
 func (c *client) CreateInvoice(ctx context.Context, amount float32,
 	description string,
 	remoteID string,
-) (InvoiceResponse, error) {
-	return InvoiceResponse{}, nil
+) (*InvoiceResponse, error) {
+	requestUrl, err := url.Parse(fmt.Sprintf("%s/%s/%s", c.url, ApiVersion, RouteInvoice))
+	if err != nil {
+		return nil, err
+	}
+	v := url.Values{}
+	v.Set("app_id", c.appID)
+	v.Add("app_secret", c.secretID)
+	v.Add("amount", fmt.Sprintf("%d", amount))
+	v.Add("description", description)
+	v.Add("remote_id", remoteID)
+	v.Add("signed", remoteID)
+	requestUrl.RawQuery = v.Encode()
+
+	status, res, err := c.apiCall(
+		ctx,
+		http.MethodGet,
+		requestUrl.String(),
+		nil,
+	)
+	if err != nil {
+		return nil, err
+	}
+	if status != http.StatusOK {
+		return nil, fmt.Errorf("unexpected response status %d: %q", status, res)
+	}
+	result := InvoiceResponse{}
+	err = json.NewDecoder(strings.NewReader(res)).Decode(&result)
+	if err != nil {
+		return nil, fmt.Errorf("decoding error for data %s: %v", res, err)
+	}
+	return &result, nil
 }
 
 // GetTrasactions ...
@@ -126,8 +186,34 @@ func (c *client) CreateInvoice(ctx context.Context, amount float32,
 // 	"to": 9,
 // 	"total": 9
 // 	}
-func (c *client) GetTransactions(ctx context.Context) (TransactionsResponse, error) {
-	return TransactionsResponse{}, nil
+func (c *client) GetTransactions(ctx context.Context) (*TransactionsResponse, error) {
+	requestUrl, err := url.Parse(fmt.Sprintf("%s/%s/%s", c.url, ApiVersion, RouteTxs))
+	if err != nil {
+		return nil, err
+	}
+	v := url.Values{}
+	v.Set("app_id", c.appID)
+	v.Add("app_secret", c.secretID)
+	requestUrl.RawQuery = v.Encode()
+
+	status, res, err := c.apiCall(
+		ctx,
+		http.MethodGet,
+		requestUrl.String(),
+		nil,
+	)
+	if err != nil {
+		return nil, err
+	}
+	if status != http.StatusOK {
+		return nil, fmt.Errorf("unexpected response status %d: %q", status, res)
+	}
+	result := TransactionsResponse{}
+	err = json.NewDecoder(strings.NewReader(res)).Decode(&result)
+	if err != nil {
+		return nil, fmt.Errorf("decoding error for data %s: %v", res, err)
+	}
+	return &result, nil
 }
 
 // GetTransaction ...
@@ -175,8 +261,34 @@ func (c *client) GetTransactions(ctx context.Context) (TransactionsResponse, err
 // 		"logo": "profiles/zV93I93mbarZo0fKgwGcpWFWDn41UYfAgj7wNCbf.jpg"
 // 	}
 // }
-func (c *client) GetTransaction(ctx context.Context, id string) (TransactionReponse, error) {
-	return TransactionReponse{}, nil
+func (c *client) GetTransaction(ctx context.Context, id string) (*TransactionReponse, error) {
+	requestUrl, err := url.Parse(fmt.Sprintf("%s/%s/%s/%s", c.url, ApiVersion, RouteTxs, id))
+	if err != nil {
+		return nil, err
+	}
+	v := url.Values{}
+	v.Set("app_id", c.appID)
+	v.Add("app_secret", c.secretID)
+	requestUrl.RawQuery = v.Encode()
+
+	status, res, err := c.apiCall(
+		ctx,
+		http.MethodGet,
+		requestUrl.String(),
+		nil,
+	)
+	if err != nil {
+		return nil, err
+	}
+	if status != http.StatusOK {
+		return nil, fmt.Errorf("unexpected response status %d: %q", status, res)
+	}
+	result := TransactionReponse{}
+	err = json.NewDecoder(strings.NewReader(res)).Decode(&result)
+	if err != nil {
+		return nil, fmt.Errorf("decoding error for data %s: %v", res, err)
+	}
+	return &result, nil
 }
 
 // GetBalance ...
@@ -187,6 +299,7 @@ func (c *client) GetTransaction(ctx context.Context, id string) (TransactionRepo
 // 	"66.00"
 // }
 func (c *client) GetBalance(ctx context.Context) (BalanceQvaPayResponse, error) {
+	// TODO: check real response
 	return "", nil
 }
 
@@ -211,8 +324,8 @@ func (c *client) apiCall(
 	URL string,
 	data []byte,
 ) (statusCode int, response string, err error) {
-	requestURL := c.url + "/" + URL
-	req, err := http.NewRequest(method, requestURL, bytes.NewBuffer(data))
+
+	req, err := http.NewRequest(method, URL, bytes.NewBuffer(data))
 	if err != nil {
 		return 0, "", fmt.Errorf("failed to create HTTP request: %v", err)
 	}

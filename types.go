@@ -11,7 +11,7 @@ type Client interface {
 	// GetInfo returns the corresponding object info on fetch call, or an error.
 	GetInfo(
 		ctx context.Context,
-	) (AppInfoResponse, error)
+	) (*AppInfoResponse, error)
 
 	// CreateInvoice ...
 	CreateInvoice(
@@ -19,18 +19,18 @@ type Client interface {
 		amount float32,
 		description string,
 		remoteID string,
-	) (InvoiceResponse, error)
+	) (*InvoiceResponse, error)
 
 	// GetTrasactions ...
 	GetTransactions(
 		ctx context.Context,
-	) (TransactionsResponse, error)
+	) (*TransactionsResponse, error)
 
 	// GetTransaction ...
 	GetTransaction(
 		ctx context.Context,
 		id string,
-	) (TransactionReponse, error)
+	) (*TransactionReponse, error)
 
 	// GetBalance ...
 	GetBalance(
