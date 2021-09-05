@@ -35,7 +35,7 @@ type Client interface {
 	// GetBalance ...
 	GetBalance(
 		ctx context.Context,
-	) (BalanceQvaPayResponse, error)
+	) (float64, error)
 }
 
 // Client
@@ -79,9 +79,6 @@ type InvoiceResponse struct {
 	URL             string  `json:"url,omitempty"`
 	SignedUrl       string  `json:"signedUrl,omitempty"`
 }
-
-// BalanceQvaPayResponse string
-type BalanceQvaPayResponse string
 
 // TransactionsResponse reposnses
 type TransactionsResponse struct {

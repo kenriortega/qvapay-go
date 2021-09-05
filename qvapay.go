@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"strconv"
 	"strings"
 )
 
@@ -262,7 +263,7 @@ func (c *client) GetTransactions(ctx context.Context) (*TransactionsResponse, er
 // 	}
 // }
 func (c *client) GetTransaction(ctx context.Context, id string) (*TransactionReponse, error) {
-	requestUrl, err := url.Parse(fmt.Sprintf("%s/%s/%s/%s", c.url, ApiVersion, RouteTxs, id))
+	requestUrl, err := url.Parse(fmt.Sprintf("%s/%s/%s/%s", c.url, ApiVersion, RouteTx, id))
 	if err != nil {
 		return nil, err
 	}
@@ -298,9 +299,33 @@ func (c *client) GetTransaction(ctx context.Context, id string) (*TransactionRep
 // {
 // 	"66.00"
 // }
-func (c *client) GetBalance(ctx context.Context) (BalanceQvaPayResponse, error) {
-	// TODO: check real response
-	return "", nil
+func (c *client) GetBalance(ctx context.Context) (float64, error) {
+	requestUrl, err := url.Parse(fmt.Sprintf("%s/%s/%s", c.url, ApiVersion, RouteBalance))
+	if err != nil {
+		return 0, err
+	}
+	v := url.Values{}
+	v.Set("app_id", c.appID)
+	v.Add("app_secret", c.secretID)
+	requestUrl.RawQuery = v.Encode()
+
+	status, res, err := c.apiCall(
+		ctx,
+		http.MethodGet,
+		requestUrl.String(),
+		nil,
+	)
+	if err != nil {
+		return 0, err
+	}
+	if status != http.StatusOK {
+		return 0, fmt.Errorf("unexpected response status %d: %q", status, res)
+	}
+	result, err := strconv.ParseFloat(res, 32)
+	if err != nil {
+		return 0, err
+	}
+	return result, nil
 }
 
 // Helpers functions
