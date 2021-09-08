@@ -128,7 +128,7 @@ func (c *client) CreateInvoice(ctx context.Context, amount float32,
 	v := url.Values{}
 	v.Set("app_id", c.appID)
 	v.Add("app_secret", c.secretID)
-	v.Add("amount", fmt.Sprintf("%d", amount))
+	v.Add("amount", fmt.Sprintf("%f", amount))
 	v.Add("description", description)
 	v.Add("remote_id", remoteID)
 	v.Add("signed", remoteID)
