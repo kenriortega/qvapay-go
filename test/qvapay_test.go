@@ -92,6 +92,53 @@ func Test_Create_Invoice(t *testing.T) {
 
 }
 
+func Test_Get_Txs(t *testing.T) {
+	s := httptest.NewServer(
+		http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			time.Sleep(50 * time.Millisecond)
+			w.Write([]byte(
+				`   {
+					 	"current_page": 1,
+					 	"data": [
+					 		{
+					 			"uuid": "b9330412-2e3d-4fe8-a531-b2be5f68ff4c",
+					 			"user_id": 1,
+					 			"app_id": 1,
+					 			"amount": "25.60",
+					 			"description": "Enanitos verdes",
+					 			"remote_id": "BRID56568989",
+					 			"status": "pending",
+					 			"paid_by_user_id": 0,
+					 			"created_at": "2021-01-10T04:35:33.000000Z",
+					 			"updated_at": "2021-01-10T04:35:33.000000Z",
+					 			"signed": 0
+					 		}
+					 	],
+					 	"first_page_url": "http://qvapay.com/api/v1/transactions?page=1",
+					 	"from": 1,
+					 	"last_page": 1,
+					 	"last_page_url": "http://qvapay.com/api/v1/transactions?page=1",
+					 	"next_page_url": null,
+					 	"path": "http://qvapay.com/api/v1/transactions",
+					 	"per_page": 15,
+					 	"prev_page_url": null,
+					 	"to": 9,
+					 	"total": 1
+					}`,
+			))
+		}),
+	)
+	defer s.Close()
+	client := qvapaygo.NewClient(appID, secretID, s.URL, true, nil, nil)
+	txs, err := client.GetTransactions(context.Background())
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+
+	assert.Equal(t, 1, len(txs.Data))
+
+}
+
 func Test_Get_Balance(t *testing.T) {
 
 	expected := 66.0

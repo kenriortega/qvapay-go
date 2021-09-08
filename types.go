@@ -99,8 +99,8 @@ type TransactionsResponse struct {
 // TransactionReponse object
 type TransactionReponse struct {
 	ID                string `json:"uuid,omitempty"`
-	UserID            string `json:"user_id,omitempty"`
-	AppID             string `json:"app_id,omitempty"`
+	UserID            int    `json:"user_id,omitempty"`
+	AppID             int    `json:"app_id,omitempty"`
 	Amount            string `json:"amount,omitempty"`
 	Description       string `json:"description,omitempty"`
 	RemoteID          string `json:"remote_id,omitempty"`
@@ -119,8 +119,8 @@ type TransactionReponse struct {
 // Trasaction object
 type Transaction struct {
 	ID           string `json:"uuid,omitempty"`
-	UserID       string `json:"user_id,omitempty"`
-	AppID        string `json:"app_id,omitempty"`
+	UserID       int    `json:"user_id,omitempty"`
+	AppID        int    `json:"app_id,omitempty"`
 	Amount       string `json:"amount,omitempty"`
 	Description  string `json:"description,omitempty"`
 	RemoteID     string `json:"remote_id,omitempty"`
