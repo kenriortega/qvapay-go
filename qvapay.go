@@ -43,6 +43,7 @@ func NewClient(
 		c.httpClient = http.DefaultClient
 	}
 	if skipVerify {
+		// #nosec
 		tr := &http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		}
@@ -116,7 +117,7 @@ func (c *client) GetInfo(ctx context.Context) (*AppInfoResponse, error) {
 // 	"url": "http://qvapay.com/pay/b9330412-2e3d-4fe8-a531-b2be5f68ff4c",
 // 	"signedUrl": "http://qvapay.com/pay/b9330412-2e3d-4fe8-a531-b2be5f68ff4c?expires=1610255133&signature=c35db0f1f9e810fd51748aaf69f0981b8d5f83949b7082eeb28c56857b91072b"
 // }
-func (c *client) CreateInvoice(ctx context.Context, amount float32,
+func (c *client) CreateInvoice(ctx context.Context, amount float64,
 	description string,
 	remoteID string,
 ) (*InvoiceResponse, error) {
@@ -127,7 +128,7 @@ func (c *client) CreateInvoice(ctx context.Context, amount float32,
 	v := url.Values{}
 	v.Set("app_id", c.appID)
 	v.Add("app_secret", c.secretID)
-	v.Add("amount", fmt.Sprintf("%d", amount))
+	v.Add("amount", fmt.Sprintf("%f", amount))
 	v.Add("description", description)
 	v.Add("remote_id", remoteID)
 	v.Add("signed", remoteID)
@@ -321,7 +322,10 @@ func (c *client) GetBalance(ctx context.Context) (float64, error) {
 	if status != http.StatusOK {
 		return 0, fmt.Errorf("unexpected response status %d: %q", status, res)
 	}
-	result, err := strconv.ParseFloat(res, 32)
+	firstParser := strings.ReplaceAll(res, `{"`, "")
+	respParsered := strings.ReplaceAll(firstParser, `"}`, "")
+
+	result, err := strconv.ParseFloat(respParsered, 64)
 	if err != nil {
 		return 0, err
 	}

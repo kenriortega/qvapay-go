@@ -16,7 +16,7 @@ type Client interface {
 	// CreateInvoice ...
 	CreateInvoice(
 		ctx context.Context,
-		amount float32,
+		amount float64,
 		description string,
 		remoteID string,
 	) (*InvoiceResponse, error)
@@ -56,7 +56,7 @@ type client struct {
 
 // AppInfoResponse it`s an object that show general datail about your app
 type AppInfoResponse struct {
-	UserID   string `json:"user_id,omitempty"`
+	UserID   int    `json:"user_id,omitempty"`
 	Name     string `json:"name,omitempty"`
 	URL      string `json:"url,omitempty"`
 	Desc     string `json:"desc,omitempty"`
@@ -70,14 +70,14 @@ type AppInfoResponse struct {
 
 // InvoiceResponse object
 type InvoiceResponse struct {
-	AppID           string  `json:"app_id,omitempty"`
-	Amount          float32 `json:"amount,omitempty"`
-	Desciption      string  `json:"desciption,omitempty"`
-	RemoteID        string  `json:"remote_id,omitempty"`
-	Signed          string  `json:"signed,omitempty"`
-	TransactionUUID string  `json:"transation_uuid,omitempty"` // report typo miss c (transaction_uuid)
-	URL             string  `json:"url,omitempty"`
-	SignedUrl       string  `json:"signedUrl,omitempty"`
+	AppID           string `json:"app_id,omitempty"`
+	Amount          string `json:"amount,omitempty"`
+	Desciption      string `json:"desciption,omitempty"`
+	RemoteID        string `json:"remote_id,omitempty"`
+	Signed          string `json:"signed,omitempty"`
+	TransactionUUID string `json:"transation_uuid,omitempty"` // report typo miss c (transaction_uuid)
+	URL             string `json:"url,omitempty"`
+	SignedUrl       string `json:"signedUrl,omitempty"`
 }
 
 // TransactionsResponse reposnses
@@ -99,8 +99,8 @@ type TransactionsResponse struct {
 // TransactionReponse object
 type TransactionReponse struct {
 	ID                string `json:"uuid,omitempty"`
-	UserID            string `json:"user_id,omitempty"`
-	AppID             string `json:"app_id,omitempty"`
+	UserID            int    `json:"user_id,omitempty"`
+	AppID             int    `json:"app_id,omitempty"`
 	Amount            string `json:"amount,omitempty"`
 	Description       string `json:"description,omitempty"`
 	RemoteID          string `json:"remote_id,omitempty"`
@@ -119,8 +119,8 @@ type TransactionReponse struct {
 // Trasaction object
 type Transaction struct {
 	ID           string `json:"uuid,omitempty"`
-	UserID       string `json:"user_id,omitempty"`
-	AppID        string `json:"app_id,omitempty"`
+	UserID       int    `json:"user_id,omitempty"`
+	AppID        int    `json:"app_id,omitempty"`
 	Amount       string `json:"amount,omitempty"`
 	Description  string `json:"description,omitempty"`
 	RemoteID     string `json:"remote_id,omitempty"`
@@ -139,7 +139,7 @@ type TransactionPaidBy struct {
 
 // App object
 type App struct {
-	UserID   string `json:"user_id,omitempty"`
+	UserID   int    `json:"user_id,omitempty"`
 	Name     string `json:"name,omitempty"`
 	URL      string `json:"url,omitempty"`
 	Desc     string `json:"desc,omitempty"`
