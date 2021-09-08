@@ -56,7 +56,7 @@ type client struct {
 
 // AppInfoResponse it`s an object that show general datail about your app
 type AppInfoResponse struct {
-	UserID   string `json:"user_id,omitempty"`
+	UserID   int    `json:"user_id,omitempty"`
 	Name     string `json:"name,omitempty"`
 	URL      string `json:"url,omitempty"`
 	Desc     string `json:"desc,omitempty"`
