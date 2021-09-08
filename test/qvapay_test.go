@@ -139,6 +139,64 @@ func Test_Get_Txs(t *testing.T) {
 
 }
 
+func Test_Get_Tx(t *testing.T) {
+	inputId := "6507ee0d-db6c-4aa9-b59a-75dc7f6eab52"
+	s := httptest.NewServer(
+		http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			time.Sleep(50 * time.Millisecond)
+			w.Write([]byte(
+				`    {
+					 	"uuid": "6507ee0d-db6c-4aa9-b59a-75dc7f6eab52",
+					 	"user_id": 1,
+					 	"app_id": 1,
+					 	"amount": "30.00",
+					 	"description": "QVAPAY-APP",
+					 	"remote_id": "15803",
+					 	"status": "pending",
+					 	"paid_by_user_id": 0,
+					 	"signed": 0,
+					 	"created_at": "2021-02-06T18:10:09.000000Z",
+					 	"updated_at": "2021-02-06T18:10:09.000000Z",
+					 	"paid_by": {
+					 		"name": "QvaPay",
+					 		"logo": "apps/qvapay.jpg"
+					 	},
+					 	"app": {
+					 		"user_id": 1,
+					 		"name": "QvaPay-app",
+					 		"url": "https://qvapay.com",
+					 		"desc": "Pasarela de pagos con criptomoendas",
+					 		"callback": "https://qvapay.com/api/callback",
+					 		"success_url": "",
+					 		"cancel_url": "",
+					 		"logo": "apps/L0YTTe3YdYz9XUh2B78OPdMPNVpt4aVci8FV5y3B.png",
+					 		"uuid": "9955dd29-082f-470b-992d-f4f0f25ea164",
+					 		"active": 1,
+					 		"enabled": 1,
+					 		"created_at": "2021-01-12T01:34:21.000000Z",
+					 		"updated_at": "2021-01-12T01:34:21.000000Z"
+					 	},
+					 	"owner": {
+					 		"uuid": "796a9e01-3d67-4a42-9dc2-02a5d069fa23",
+					 		"username": "qvapay-owner",
+					 		"name": "QvaPay",
+					 		"lastname": "Pasarela Pagos",
+					 		"logo": "profiles/zV93I93mbarZo0fKgwGcpWFWDn41UYfAgj7wNCbf.jpg"
+					 	}
+					 }`,
+			))
+		}),
+	)
+	defer s.Close()
+	client := qvapaygo.NewClient(appID, secretID, s.URL, true, nil, nil)
+	tx, err := client.GetTransaction(context.Background(), inputId)
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+
+	assert.Equal(t, inputId, tx.ID)
+
+}
 func Test_Get_Balance(t *testing.T) {
 
 	expected := 66.0

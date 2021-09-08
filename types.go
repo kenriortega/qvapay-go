@@ -139,7 +139,7 @@ type TransactionPaidBy struct {
 
 // App object
 type App struct {
-	UserID   string `json:"user_id,omitempty"`
+	UserID   int    `json:"user_id,omitempty"`
 	Name     string `json:"name,omitempty"`
 	URL      string `json:"url,omitempty"`
 	Desc     string `json:"desc,omitempty"`
