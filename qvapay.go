@@ -43,6 +43,7 @@ func NewClient(
 		c.httpClient = http.DefaultClient
 	}
 	if skipVerify {
+		// #nosec
 		tr := &http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		}
