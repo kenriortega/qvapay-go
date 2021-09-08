@@ -16,7 +16,7 @@ type Client interface {
 	// CreateInvoice ...
 	CreateInvoice(
 		ctx context.Context,
-		amount float32,
+		amount float64,
 		description string,
 		remoteID string,
 	) (*InvoiceResponse, error)
@@ -70,14 +70,14 @@ type AppInfoResponse struct {
 
 // InvoiceResponse object
 type InvoiceResponse struct {
-	AppID           string  `json:"app_id,omitempty"`
-	Amount          float32 `json:"amount,omitempty"`
-	Desciption      string  `json:"desciption,omitempty"`
-	RemoteID        string  `json:"remote_id,omitempty"`
-	Signed          string  `json:"signed,omitempty"`
-	TransactionUUID string  `json:"transation_uuid,omitempty"` // report typo miss c (transaction_uuid)
-	URL             string  `json:"url,omitempty"`
-	SignedUrl       string  `json:"signedUrl,omitempty"`
+	AppID           string `json:"app_id,omitempty"`
+	Amount          string `json:"amount,omitempty"`
+	Desciption      string `json:"desciption,omitempty"`
+	RemoteID        string `json:"remote_id,omitempty"`
+	Signed          string `json:"signed,omitempty"`
+	TransactionUUID string `json:"transation_uuid,omitempty"` // report typo miss c (transaction_uuid)
+	URL             string `json:"url,omitempty"`
+	SignedUrl       string `json:"signedUrl,omitempty"`
 }
 
 // TransactionsResponse reposnses
