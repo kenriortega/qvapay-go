@@ -321,7 +321,10 @@ func (c *client) GetBalance(ctx context.Context) (float64, error) {
 	if status != http.StatusOK {
 		return 0, fmt.Errorf("unexpected response status %d: %q", status, res)
 	}
-	result, err := strconv.ParseFloat(res, 32)
+	firstParser := strings.ReplaceAll(res, `{"`, "")
+	respParsered := strings.ReplaceAll(firstParser, `"}`, "")
+
+	result, err := strconv.ParseFloat(respParsered, 32)
 	if err != nil {
 		return 0, err
 	}
