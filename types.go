@@ -39,7 +39,7 @@ type Client interface {
 }
 
 // Client
-// client represents a Mtss client. If the Debug field is set to an io.Writer
+// client represents a qvapay client. If the Debug field is set to an io.Writer
 // (for example os.Stdout), then the client will dump API requests and responses
 // to it.  To use a non-default HTTP client (for example, for testing, or to set
 // a timeout), assign to the HTTPClient field. To set a non-default URL (for
