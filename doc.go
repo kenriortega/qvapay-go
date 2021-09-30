@@ -1,5 +1,5 @@
 /*
-	Package qvapay is the no-official mtss SDK for Go.
+	Package qvapay is the no-official qvapay apps SDK for Go.
 	Use it to interact with the Qvapay API.
 
 
