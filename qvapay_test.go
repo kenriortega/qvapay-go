@@ -1,4 +1,4 @@
-package test
+package qvapay_test
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	qvapaygo "github.com/kenriortega/qvapay-go"
+	"github.com/kenriortega/qvapay-go"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -19,9 +19,9 @@ const (
 
 func Test_Invalid_URL(t *testing.T) {
 
-	client := qvapaygo.NewClient(appID, secretID, "ht&@-tp://:aa", true, nil, nil)
+	api := qvapay.NewAPIClient(appID, secretID, "ht&@-tp://:aa", true, nil, nil)
 
-	actual, err := client.GetInfo(context.Background())
+	actual, err := api.GetInfo(context.Background())
 	assert.Error(t, err)
 	assert.Empty(t, actual)
 
@@ -31,7 +31,7 @@ func Test_Get_Info(t *testing.T) {
 	uuidExpected := "123456789"
 	s := httptest.NewServer(
 		http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-			time.Sleep(50 * time.Millisecond)
+			time.Sleep(10 * time.Millisecond)
 			w.Write([]byte(
 				` {
 					 	"user_id":1,
@@ -50,7 +50,7 @@ func Test_Get_Info(t *testing.T) {
 	)
 	defer s.Close()
 
-	client := qvapaygo.NewClient(appID, secretID, s.URL, true, nil, nil)
+	client := qvapay.NewAPIClient(appID, secretID, s.URL, true, nil, nil)
 	info, err := client.GetInfo(context.Background())
 	if err != nil {
 		t.Fatalf(err.Error())
@@ -62,7 +62,7 @@ func Test_Create_Invoice(t *testing.T) {
 	amountInput := 25.60
 	s := httptest.NewServer(
 		http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-			time.Sleep(50 * time.Millisecond)
+			time.Sleep(10 * time.Millisecond)
 			w.Write([]byte(
 				` {
 					 	"app_id": "c2ffb4b5-0c73-44f8-b947-53eeddb0afc6",
@@ -78,7 +78,7 @@ func Test_Create_Invoice(t *testing.T) {
 		}),
 	)
 	defer s.Close()
-	client := qvapaygo.NewClient(appID, secretID, s.URL, true, nil, nil)
+	client := qvapay.NewAPIClient(appID, secretID, s.URL, true, nil, nil)
 	invoice, err := client.CreateInvoice(context.Background(), amountInput, "Enanitos verdes", "BRID56568989")
 	if err != nil {
 		t.Fatalf(err.Error())
@@ -95,7 +95,7 @@ func Test_Create_Invoice(t *testing.T) {
 func Test_Get_Txs(t *testing.T) {
 	s := httptest.NewServer(
 		http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-			time.Sleep(50 * time.Millisecond)
+			time.Sleep(10 * time.Millisecond)
 			w.Write([]byte(
 				`   {
 					 	"current_page": 1,
@@ -129,7 +129,7 @@ func Test_Get_Txs(t *testing.T) {
 		}),
 	)
 	defer s.Close()
-	client := qvapaygo.NewClient(appID, secretID, s.URL, true, nil, nil)
+	client := qvapay.NewAPIClient(appID, secretID, s.URL, true, nil, nil)
 	txs, err := client.GetTransactions(context.Background())
 	if err != nil {
 		t.Fatalf(err.Error())
@@ -143,7 +143,7 @@ func Test_Get_Tx(t *testing.T) {
 	inputId := "6507ee0d-db6c-4aa9-b59a-75dc7f6eab52"
 	s := httptest.NewServer(
 		http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-			time.Sleep(50 * time.Millisecond)
+			time.Sleep(10 * time.Millisecond)
 			w.Write([]byte(
 				`    {
 					 	"uuid": "6507ee0d-db6c-4aa9-b59a-75dc7f6eab52",
@@ -188,7 +188,7 @@ func Test_Get_Tx(t *testing.T) {
 		}),
 	)
 	defer s.Close()
-	client := qvapaygo.NewClient(appID, secretID, s.URL, true, nil, nil)
+	client := qvapay.NewAPIClient(appID, secretID, s.URL, true, nil, nil)
 	tx, err := client.GetTransaction(context.Background(), inputId)
 	if err != nil {
 		t.Fatalf(err.Error())
@@ -202,7 +202,7 @@ func Test_Get_Balance(t *testing.T) {
 	expected := 66.0
 	s := httptest.NewServer(
 		http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-			time.Sleep(50 * time.Millisecond)
+			time.Sleep(10 * time.Millisecond)
 			w.Write([]byte(
 				`{"66.0"}`,
 			))
@@ -210,7 +210,7 @@ func Test_Get_Balance(t *testing.T) {
 	)
 	defer s.Close()
 
-	client := qvapaygo.NewClient(appID, secretID, s.URL, true, nil, nil)
+	client := qvapay.NewAPIClient(appID, secretID, s.URL, true, nil, nil)
 	balance, err := client.GetBalance(context.Background())
 	if err != nil {
 		t.Fatalf(err.Error())

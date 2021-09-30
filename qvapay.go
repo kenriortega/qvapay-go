@@ -1,55 +1,126 @@
-package qvapaygo
+package qvapay
 
 import (
-	"bytes"
 	"context"
-	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"io"
-	"io/ioutil"
-	"log"
 	"net/http"
-	"net/http/httputil"
 	"net/url"
 	"strconv"
 	"strings"
 )
 
-func NewClient(
-	// APP_ID
-	appID string,
-	// SECRET_ID
-	secretID string,
-	// mtss API's base url
-	baseURL string,
-	// skipVerify
-	skipVerify bool,
-	//optional, defaults to http.DefaultClient
-	httpClient *http.Client,
-	debug io.Writer,
-) Client {
+const (
+	RouteInfo    = "info"
+	RouteInvoice = "create_invoice"
+	RouteTxs     = "transactions"
+	RouteTx      = "transaction"
+	RouteBalance = "balance"
+)
 
-	c := &client{
-		appID:      appID,
-		secretID:   secretID,
-		url:        baseURL,
-		httpClient: httpClient,
-		debug:      debug,
-	}
-	if httpClient != nil {
-		c.httpClient = httpClient
-	} else {
-		c.httpClient = http.DefaultClient
-	}
-	if skipVerify {
-		// #nosec
-		tr := &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-		}
-		c.httpClient.Transport = tr
-	}
-	return c
+// AppInfoResponse it`s an object that show general datail about your app
+type AppInfoResponse struct {
+	UserID   int    `json:"user_id,omitempty"`
+	Name     string `json:"name,omitempty"`
+	URL      string `json:"url,omitempty"`
+	Desc     string `json:"desc,omitempty"`
+	Callback string `json:"callback,omitempty"`
+	Logo     string `json:"logo,omitempty"`
+	Uuid     string `json:"uuid,omitempty"`
+	Active   int    `json:"active,omitempty"`
+	Enabled  int    `json:"enabled,omitempty"`
+	Secret   string `json:"secret,omitempty"`
+}
+
+// InvoiceResponse object
+type InvoiceResponse struct {
+	AppID           string `json:"app_id,omitempty"`
+	Amount          string `json:"amount,omitempty"`
+	Desciption      string `json:"desciption,omitempty"`
+	RemoteID        string `json:"remote_id,omitempty"`
+	Signed          string `json:"signed,omitempty"`
+	TransactionUUID string `json:"transation_uuid,omitempty"` // report typo miss c (transaction_uuid)
+	URL             string `json:"url,omitempty"`
+	SignedUrl       string `json:"signedUrl,omitempty"`
+}
+
+// TransactionsResponse reposnses
+type TransactionsResponse struct {
+	CurrentPage  int           `json:"current_page,omitempty"`
+	Data         []Transaction `json:"data,omitempty"`
+	FristPageURL string        `json:"frist_page_url,omitempty"`
+	From         int           `json:"from,omitempty"`
+	LastPage     int           `json:"last_page,omitempty"`
+	LastPageURL  string        `json:"last_page_url,omitempty"`
+	NextPageURL  string        `json:"next_page_url,omitempty"`
+	Path         string        `json:"path,omitempty"`
+	PerPage      int           `json:"per_page,omitempty"`
+	PrevPageURL  string        `json:"prev_page_url,omitempty"`
+	To           int           `json:"to,omitempty"`
+	Total        int           `json:"total,omitempty"`
+}
+
+// TransactionReponse object
+type TransactionReponse struct {
+	ID                string `json:"uuid,omitempty"`
+	UserID            int    `json:"user_id,omitempty"`
+	AppID             int    `json:"app_id,omitempty"`
+	Amount            string `json:"amount,omitempty"`
+	Description       string `json:"description,omitempty"`
+	RemoteID          string `json:"remote_id,omitempty"`
+	Status            string `json:"status,omitempty"`
+	PaidByUserID      int    `json:"paid_by_user_id,omitempty"`
+	Signed            int    `json:"signed,omitempty"`
+	CreatedAt         string `json:"created_at,omitempty"`
+	UpdatedAt         string `json:"updated_at,omitempty"`
+	TransactionPaidBy `json:"paid_by,omitempty"`
+	App               `json:"app,omitempty"`
+	Owner             `json:"owner,omitempty"`
+}
+
+// Models
+
+// Trasaction object
+type Transaction struct {
+	ID           string `json:"uuid,omitempty"`
+	UserID       int    `json:"user_id,omitempty"`
+	AppID        int    `json:"app_id,omitempty"`
+	Amount       string `json:"amount,omitempty"`
+	Description  string `json:"description,omitempty"`
+	RemoteID     string `json:"remote_id,omitempty"`
+	Status       string `json:"status,omitempty"`
+	PaidByUserID int    `json:"paid_by_user_id,omitempty"`
+	Signed       int    `json:"signed,omitempty"`
+	CreatedAt    string `json:"created_at,omitempty"`
+	UpdatedAt    string `json:"updated_at,omitempty"`
+}
+
+// TransactionPaidBy object
+type TransactionPaidBy struct {
+	Name string `json:"name,omitempty"`
+	Logo string `json:"logo,omitempty"`
+}
+
+// App object
+type App struct {
+	UserID   int    `json:"user_id,omitempty"`
+	Name     string `json:"name,omitempty"`
+	URL      string `json:"url,omitempty"`
+	Desc     string `json:"desc,omitempty"`
+	Callback string `json:"callback,omitempty"`
+	Logo     string `json:"logo,omitempty"`
+	Uuid     string `json:"uuid,omitempty"`
+	Active   int    `json:"active,omitempty"`
+	Enabled  int    `json:"enabled,omitempty"`
+}
+
+// Owner object
+type Owner struct {
+	ID       string `json:"uuid,omitempty"`
+	Username string `json:"username,omitempty"`
+	Name     string `json:"name,omitempty"`
+	Lastname string `json:"lastname,omitempty"`
+	Logo     string `json:"logo,omitempty"`
 }
 
 // GetInfo returns the corresponding object info on fetch call, or an error.
@@ -78,7 +149,7 @@ func (c *client) GetInfo(ctx context.Context) (*AppInfoResponse, error) {
 	}
 	v := url.Values{}
 	v.Set("app_id", c.appID)
-	v.Add("app_secret", c.secretID)
+	v.Add("app_secret", c.appSecret)
 	requestUrl.RawQuery = v.Encode()
 
 	status, res, err := c.apiCall(
@@ -127,7 +198,7 @@ func (c *client) CreateInvoice(ctx context.Context, amount float64,
 	}
 	v := url.Values{}
 	v.Set("app_id", c.appID)
-	v.Add("app_secret", c.secretID)
+	v.Add("app_secret", c.appSecret)
 	v.Add("amount", fmt.Sprintf("%f", amount))
 	v.Add("description", description)
 	v.Add("remote_id", remoteID)
@@ -195,7 +266,7 @@ func (c *client) GetTransactions(ctx context.Context) (*TransactionsResponse, er
 	}
 	v := url.Values{}
 	v.Set("app_id", c.appID)
-	v.Add("app_secret", c.secretID)
+	v.Add("app_secret", c.appSecret)
 	requestUrl.RawQuery = v.Encode()
 
 	status, res, err := c.apiCall(
@@ -270,7 +341,7 @@ func (c *client) GetTransaction(ctx context.Context, id string) (*TransactionRep
 	}
 	v := url.Values{}
 	v.Set("app_id", c.appID)
-	v.Add("app_secret", c.secretID)
+	v.Add("app_secret", c.appSecret)
 	requestUrl.RawQuery = v.Encode()
 
 	status, res, err := c.apiCall(
@@ -307,7 +378,7 @@ func (c *client) GetBalance(ctx context.Context) (float64, error) {
 	}
 	v := url.Values{}
 	v.Set("app_id", c.appID)
-	v.Add("app_secret", c.secretID)
+	v.Add("app_secret", c.appSecret)
 	requestUrl.RawQuery = v.Encode()
 
 	status, res, err := c.apiCall(
@@ -330,56 +401,4 @@ func (c *client) GetBalance(ctx context.Context) (float64, error) {
 		return 0, err
 	}
 	return result, nil
-}
-
-// Helpers functions
-
-// dumpResponse writes the raw response data to the debug output, if set, or
-// standard error otherwise.
-func (c *client) dumpResponse(resp *http.Response) {
-	// ignore errors dumping response - no recovery from this
-	responseDump, err := httputil.DumpResponse(resp, true)
-	if err != nil {
-		log.Fatalf("dumpResponse: " + err.Error())
-	}
-	fmt.Fprintln(c.debug, string(responseDump))
-	fmt.Fprintln(c.debug)
-}
-
-// apiCall define how you can make a call to Mtss API
-func (c *client) apiCall(
-	ctx context.Context,
-	method string,
-	URL string,
-	data []byte,
-) (statusCode int, response string, err error) {
-
-	req, err := http.NewRequest(method, URL, bytes.NewBuffer(data))
-	if err != nil {
-		return 0, "", fmt.Errorf("failed to create HTTP request: %v", err)
-	}
-	req.Header.Add("content-type", "application/json")
-	req.Header.Set("User-Agent", "qvapaygo-client/0.0")
-	if c.debug != nil {
-		requestDump, err := httputil.DumpRequestOut(req, true)
-		if err != nil {
-			return 0, "", fmt.Errorf("error dumping HTTP request: %v", err)
-		}
-		fmt.Fprintln(c.debug, string(requestDump))
-		fmt.Fprintln(c.debug)
-	}
-	req = req.WithContext(ctx)
-	resp, err := c.httpClient.Do(req)
-	if err != nil {
-		return 0, "", fmt.Errorf("HTTP request failed with: %v", err)
-	}
-	defer resp.Body.Close()
-	if c.debug != nil {
-		c.dumpResponse(resp)
-	}
-	res, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return resp.StatusCode, "", fmt.Errorf("HTTP request failed: %v", err)
-	}
-	return resp.StatusCode, string(res), nil
 }
