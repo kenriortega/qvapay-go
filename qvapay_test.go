@@ -130,7 +130,8 @@ func Test_Get_Txs(t *testing.T) {
 	)
 	defer s.Close()
 	client := qvapay.NewAPIClient(appID, secretID, s.URL, true, nil, nil)
-	txs, err := client.GetTransactions(context.Background())
+	query := qvapay.APIQueryParams{}
+	txs, err := client.GetTransactions(context.Background(), query)
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
