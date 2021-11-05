@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -32,6 +33,15 @@ type AppInfoResponse struct {
 	Secret   string `json:"secret,omitempty"`
 }
 
+// ToJSON ...
+func (ai *AppInfoResponse) ToJSON() string {
+	bytes, err := json.Marshal(ai)
+	if err != nil {
+		log.Fatalf(err.Error())
+	}
+	return string(bytes)
+}
+
 // InvoiceResponse object
 type InvoiceResponse struct {
 	AppID           string `json:"app_id,omitempty"`
@@ -42,6 +52,14 @@ type InvoiceResponse struct {
 	TransactionUUID string `json:"transation_uuid,omitempty"` // report typo miss c (transaction_uuid)
 	URL             string `json:"url,omitempty"`
 	SignedUrl       string `json:"signedUrl,omitempty"`
+}
+
+func (i *InvoiceResponse) ToJSON() string {
+	bytes, err := json.Marshal(i)
+	if err != nil {
+		log.Fatalf(err.Error())
+	}
+	return string(bytes)
 }
 
 // TransactionsResponse reposnses
@@ -58,6 +76,14 @@ type TransactionsResponse struct {
 	PrevPageURL  string        `json:"prev_page_url,omitempty"`
 	To           int           `json:"to,omitempty"`
 	Total        int           `json:"total,omitempty"`
+}
+
+func (txs *TransactionsResponse) ToJSON() string {
+	bytes, err := json.Marshal(txs)
+	if err != nil {
+		log.Fatalf(err.Error())
+	}
+	return string(bytes)
 }
 
 // TransactionReponse object
@@ -78,50 +104,15 @@ type TransactionReponse struct {
 	Owner             `json:"owner,omitempty"`
 }
 
+func (tx *TransactionReponse) ToJSON() string {
+	bytes, err := json.Marshal(tx)
+	if err != nil {
+		log.Fatalf(err.Error())
+	}
+	return string(bytes)
+}
+
 // Models
-
-// Trasaction object
-type Transaction struct {
-	ID           string `json:"uuid,omitempty"`
-	UserID       int    `json:"user_id,omitempty"`
-	AppID        int    `json:"app_id,omitempty"`
-	Amount       string `json:"amount,omitempty"`
-	Description  string `json:"description,omitempty"`
-	RemoteID     string `json:"remote_id,omitempty"`
-	Status       string `json:"status,omitempty"`
-	PaidByUserID int    `json:"paid_by_user_id,omitempty"`
-	Signed       int    `json:"signed,omitempty"`
-	CreatedAt    string `json:"created_at,omitempty"`
-	UpdatedAt    string `json:"updated_at,omitempty"`
-}
-
-// TransactionPaidBy object
-type TransactionPaidBy struct {
-	Name string `json:"name,omitempty"`
-	Logo string `json:"logo,omitempty"`
-}
-
-// App object
-type App struct {
-	UserID   int    `json:"user_id,omitempty"`
-	Name     string `json:"name,omitempty"`
-	URL      string `json:"url,omitempty"`
-	Desc     string `json:"desc,omitempty"`
-	Callback string `json:"callback,omitempty"`
-	Logo     string `json:"logo,omitempty"`
-	Uuid     string `json:"uuid,omitempty"`
-	Active   int    `json:"active,omitempty"`
-	Enabled  int    `json:"enabled,omitempty"`
-}
-
-// Owner object
-type Owner struct {
-	ID       string `json:"uuid,omitempty"`
-	Username string `json:"username,omitempty"`
-	Name     string `json:"name,omitempty"`
-	Lastname string `json:"lastname,omitempty"`
-	Logo     string `json:"logo,omitempty"`
-}
 
 // GetInfo returns the corresponding object info on fetch call, or an error.
 //
@@ -259,7 +250,7 @@ func (c *client) CreateInvoice(ctx context.Context, amount float64,
 // 	"to": 9,
 // 	"total": 9
 // 	}
-func (c *client) GetTransactions(ctx context.Context) (*TransactionsResponse, error) {
+func (c *client) GetTransactions(ctx context.Context, query APIQueryParams) (*TransactionsResponse, error) {
 	requestUrl, err := url.Parse(fmt.Sprintf("%s/%s/%s", c.url, ApiVersion, RouteTxs))
 	if err != nil {
 		return nil, err
@@ -267,6 +258,7 @@ func (c *client) GetTransactions(ctx context.Context) (*TransactionsResponse, er
 	v := url.Values{}
 	v.Set("app_id", c.appID)
 	v.Add("app_secret", c.appSecret)
+	v = formatParams(v, query)
 	requestUrl.RawQuery = v.Encode()
 
 	status, res, err := c.apiCall(
