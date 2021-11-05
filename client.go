@@ -10,13 +10,8 @@ import (
 	"log"
 	"net/http"
 	"net/http/httputil"
-	"net/url"
 	"os"
-)
-
-const (
-	ApiVersion = "v1"
-	BaseURL    = "https://qvapay.com/api"
+	"time"
 )
 
 // Client is an interface that implements https://qvapay.com/api
@@ -37,6 +32,7 @@ type Client interface {
 	// GetTrasactions ...
 	GetTransactions(
 		ctx context.Context,
+		query APIQueryParams,
 	) (*TransactionsResponse, error)
 
 	// GetTransaction ...
@@ -78,7 +74,15 @@ func NewAPIClient(
 	httpClient *http.Client,
 	debug io.Writer,
 ) Client {
-
+	tr := &http.Transport{
+		Proxy:                 http.ProxyFromEnvironment,
+		MaxIdleConns:          256,
+		MaxIdleConnsPerHost:   256,
+		IdleConnTimeout:       60 * time.Second,
+		TLSHandshakeTimeout:   10 * time.Second,
+		ExpectContinueTimeout: 1 * time.Second,
+		DisableCompression:    true,
+	}
 	c := &client{
 		appID:      appID,
 		appSecret:  secretID,
@@ -86,6 +90,7 @@ func NewAPIClient(
 		httpClient: httpClient,
 		debug:      debug,
 	}
+
 	if appID == "" {
 		c.appID = os.Getenv("APP_ID")
 	}
@@ -102,11 +107,11 @@ func NewAPIClient(
 	}
 	if skipVerify {
 		// #nosec
-		tr := &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-		}
+		tr.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 		c.httpClient.Transport = tr
 	}
+	c.httpClient.Transport = tr
+
 	return c
 }
 
@@ -149,7 +154,7 @@ func (c *client) apiCall(
 	if err != nil {
 		return 0, "", fmt.Errorf("HTTP request failed with: %v", err)
 	}
-	defer resp.Body.Close()
+	defer DrainBody(resp.Body)
 	if c.debug != nil {
 		c.dumpResponse(resp)
 	}
@@ -160,22 +165,17 @@ func (c *client) apiCall(
 	return resp.StatusCode, string(res), nil
 }
 
-type APIPagingParams struct {
-	Count int
-	Page  int
-	Order string
-	From  string
-	To    string
-}
-
-type APIQueryParams APIPagingParams
-
-func formatParams(v url.Values, query APIPagingParams) url.Values {
-
-	if query.Page > 0 {
-		v.Add("page", fmt.Sprintf("%d", query.Page))
+func DrainBody(respBody io.ReadCloser) {
+	// Callers should close resp.Body when done reading from it.
+	// If resp.Body is not closed, the Client's underlying RoundTripper
+	// (typically Transport) may not be able to re-use a persistent TCP
+	// connection to the server for a subsequent "keep-alive" request.
+	if respBody != nil {
+		// Drain any remaining Body and then close the connection.
+		// Without this closing connection would disallow re-using
+		// the same connection for future uses.
+		//  - http://stackoverflow.com/a/17961593/4465767
+		defer respBody.Close()
+		_, _ = io.Copy(ioutil.Discard, respBody)
 	}
-
-	v.Encode()
-	return v
 }
