@@ -4,7 +4,7 @@
 
 
 	func main() {
-		api := qvapay.NewAPIClient(
+		api := qvapay.NewPaymentAppClient(
 			os.Getenv("APP_ID"),     // app_id
 			os.Getenv("APP_SECRET"), // secret_id
 			qvapay.BaseURL,          // constants url base https://qvapay.com/api

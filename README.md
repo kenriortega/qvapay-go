@@ -26,7 +26,7 @@ client := qvapaygo.NewClient(
     os.Getenv("SECRET_ID"), // secret_id
     qvapaygo.BaseURL, // constants url base https://qvapay.com/api
     false, // skip verificationSSL
-    nil, // custom http.Client
+    nil, // custom http.PaymentAppClient
     nil, // debug io.Writter (os.Stdout)
 )
 

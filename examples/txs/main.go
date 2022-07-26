@@ -21,12 +21,12 @@ func init() {
 }
 
 func main() {
-	api := qvapay.NewAPIClient(
+	api := qvapay.NewPaymentAppClient(
 		os.Getenv("APP_ID"),     // app_id
 		os.Getenv("APP_SECRET"), // secret_id
 		qvapay.BaseURL,          // constants url base https://qvapay.com/api
 		false,                   // skip verificationSSL
-		nil,                     // custom http.Client
+		nil,                     // custom http.PaymentAppClient
 		nil,                     // debug io.Writter (os.Stdout)
 	)
 
