@@ -62,12 +62,12 @@ func Test_Get_Info(t *testing.T) {
 
 	client := qvapay.NewPaymentAppClient(
 		qvapay.Options{
-			BaseURL:    "https://qvapay.com/api", // constants url base https://qvapay.com/api
-			HttpClient: nil,                      // custom http.PaymentAppClient
-			Debug:      os.Stdout,                // debug io.Writter (os.Stdout)
-			AppID:      appID,                    // app_id
-			SecretID:   secretID,                 // secret_id
-			SkipVerify: false,                    // skip verificationSSL
+			BaseURL:    s.URL,     // constants url base https://qvapay.com/api
+			HttpClient: nil,       // custom http.PaymentAppClient
+			Debug:      os.Stdout, // debug io.Writter (os.Stdout)
+			AppID:      appID,     // app_id
+			SecretID:   secretID,  // secret_id
+			SkipVerify: false,     // skip verificationSSL
 		},
 	)
 	info, err := client.GetInfo(context.Background())
@@ -99,12 +99,12 @@ func Test_Create_Invoice(t *testing.T) {
 	defer s.Close()
 	client := qvapay.NewPaymentAppClient(
 		qvapay.Options{
-			BaseURL:    "https://qvapay.com/api", // constants url base https://qvapay.com/api
-			HttpClient: nil,                      // custom http.PaymentAppClient
-			Debug:      os.Stdout,                // debug io.Writter (os.Stdout)
-			AppID:      appID,                    // app_id
-			SecretID:   secretID,                 // secret_id
-			SkipVerify: false,                    // skip verificationSSL
+			BaseURL:    s.URL,     // constants url base https://qvapay.com/api
+			HttpClient: nil,       // custom http.PaymentAppClient
+			Debug:      os.Stdout, // debug io.Writter (os.Stdout)
+			AppID:      appID,     // app_id
+			SecretID:   secretID,  // secret_id
+			SkipVerify: false,     // skip verificationSSL
 		},
 	)
 	invoice, err := client.CreateInvoice(context.Background(), amountInput, "Enanitos verdes", "BRID56568989")
@@ -159,12 +159,12 @@ func Test_Get_Txs(t *testing.T) {
 	defer s.Close()
 	client := qvapay.NewPaymentAppClient(
 		qvapay.Options{
-			BaseURL:    "https://qvapay.com/api", // constants url base https://qvapay.com/api
-			HttpClient: nil,                      // custom http.PaymentAppClient
-			Debug:      os.Stdout,                // debug io.Writter (os.Stdout)
-			AppID:      appID,                    // app_id
-			SecretID:   secretID,                 // secret_id
-			SkipVerify: false,                    // skip verificationSSL
+			BaseURL:    s.URL,     // constants url base https://qvapay.com/api
+			HttpClient: nil,       // custom http.PaymentAppClient
+			Debug:      os.Stdout, // debug io.Writter (os.Stdout)
+			AppID:      appID,     // app_id
+			SecretID:   secretID,  // secret_id
+			SkipVerify: false,     // skip verificationSSL
 		},
 	)
 	query := qvapay.APIQueryParams{}
@@ -228,12 +228,12 @@ func Test_Get_Tx(t *testing.T) {
 	defer s.Close()
 	client := qvapay.NewPaymentAppClient(
 		qvapay.Options{
-			BaseURL:    "https://qvapay.com/api", // constants url base https://qvapay.com/api
-			HttpClient: nil,                      // custom http.PaymentAppClient
-			Debug:      os.Stdout,                // debug io.Writter (os.Stdout)
-			AppID:      appID,                    // app_id
-			SecretID:   secretID,                 // secret_id
-			SkipVerify: false,                    // skip verificationSSL
+			BaseURL:    s.URL,     // constants url base https://qvapay.com/api
+			HttpClient: nil,       // custom http.PaymentAppClient
+			Debug:      os.Stdout, // debug io.Writter (os.Stdout)
+			AppID:      appID,     // app_id
+			SecretID:   secretID,  // secret_id
+			SkipVerify: false,     // skip verificationSSL
 		},
 	)
 	tx, err := client.GetTransaction(context.Background(), inputId)
@@ -259,12 +259,12 @@ func Test_Get_Balance(t *testing.T) {
 
 	client := qvapay.NewPaymentAppClient(
 		qvapay.Options{
-			BaseURL:    "https://qvapay.com/api", // constants url base https://qvapay.com/api
-			HttpClient: nil,                      // custom http.PaymentAppClient
-			Debug:      os.Stdout,                // debug io.Writter (os.Stdout)
-			AppID:      appID,                    // app_id
-			SecretID:   secretID,                 // secret_id
-			SkipVerify: false,                    // skip verificationSSL
+			BaseURL:    s.URL,     // constants url base https://qvapay.com/api
+			HttpClient: nil,       // custom http.PaymentAppClient
+			Debug:      os.Stdout, // debug io.Writter (os.Stdout)
+			AppID:      appID,     // app_id
+			SecretID:   secretID,  // secret_id
+			SkipVerify: false,     // skip verificationSSL
 		},
 	)
 	balance, err := client.GetBalance(context.Background())
