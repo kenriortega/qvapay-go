@@ -3,24 +3,27 @@ package qvapay
 import (
 	"bytes"
 	"context"
-	"crypto/tls"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"net/http/httputil"
-	"os"
-	"time"
+	"net/url"
+	"strconv"
+	// "github.com/hashicorp/go-retryablehttp"
 )
 
-// Client is an interface that implements https://qvapay.com/api
-type Client interface {
-	// GetInfo returns the corresponding object info on fetch call, or an error.
-	GetInfo(
-		ctx context.Context,
-	) (*AppInfoResponse, error)
+const (
+	ApiVersion = "v1"
+	BaseURL    = "https://qvapay.com/api"
+)
 
+type IQvaPay interface {
+	// GetInfo returns the corresponding object info on fetch call, or an error.
+	GetInfo(ctx context.Context) (*AppInfoResponse, error)
 	// CreateInvoice ...
 	CreateInvoice(
 		ctx context.Context,
@@ -28,91 +31,46 @@ type Client interface {
 		description string,
 		remoteID string,
 	) (*InvoiceResponse, error)
-
-	// GetTrasactions ...
-	GetTransactions(
-		ctx context.Context,
-		query APIQueryParams,
-	) (*TransactionsResponse, error)
-
+	// GetTransactions ...
+	GetTransactions(ctx context.Context, query APIQueryParams) (*TransactionsResponse, error)
 	// GetTransaction ...
-	GetTransaction(
-		ctx context.Context,
-		id string,
-	) (*TransactionReponse, error)
-
+	GetTransaction(ctx context.Context, id string) (*TransactionReponse, error)
 	// GetBalance ...
-	GetBalance(
-		ctx context.Context,
-	) (float64, error)
+	GetBalance(ctx context.Context) (float64, error)
+
+	// qvapay v2
+
+	// Offers ...
+	Offers(ctx context.Context, query QueryParams) (map[string]any, error)
 }
 
-// Client
-// client represents a qvapay client. If the Debug field is set to an io.Writer
-// (for example os.Stdout), then the client will dump API requests and responses
-// to it.  To use a non-default HTTP client (for example, for testing, or to set
-// a timeout), assign to the HTTPClient field. To set a non-default URL (for
-// example, for testing), assign to the URL field.
+// QvaPayFactory it`s a constructor factory method
+func QvaPayFactory(apiType string, opts Options) (IQvaPay, error) {
+	switch apiType {
+	case "qvapay":
+		return NewQvaPay(opts), nil
+	case "app":
+		return NewPaymentAppClient(opts), nil
+	}
+	return nil, errors.New("error: Bad Payment method type passed")
+}
+
 type client struct {
-	appID      string
-	appSecret  string
 	url        string
 	httpClient *http.Client
 	debug      io.Writer
+	appID      string
+	appSecret  string
 }
 
-func NewAPIClient(
-	// APP_ID
-	appID string,
-	// APP_SECRET
-	secretID string,
-	// mtss API's base url
-	baseURL string,
-	// skipVerify
-	skipVerify bool,
-	//optional, defaults to http.DefaultClient
-	httpClient *http.Client,
-	debug io.Writer,
-) Client {
-	tr := &http.Transport{
-		Proxy:                 http.ProxyFromEnvironment,
-		MaxIdleConns:          256,
-		MaxIdleConnsPerHost:   256,
-		IdleConnTimeout:       60 * time.Second,
-		TLSHandshakeTimeout:   10 * time.Second,
-		ExpectContinueTimeout: 1 * time.Second,
-		DisableCompression:    true,
-	}
-	c := &client{
-		appID:      appID,
-		appSecret:  secretID,
-		url:        baseURL,
-		httpClient: httpClient,
-		debug:      debug,
-	}
+type TransPortAuthBasic struct {
+	Transport http.RoundTripper
+	Token     string
+}
 
-	if appID == "" {
-		c.appID = os.Getenv("APP_ID")
-	}
-	if secretID == "" {
-		c.appSecret = os.Getenv("APP_SECRET")
-	}
-	if baseURL == "" {
-		c.url = BaseURL
-	}
-	if httpClient != nil {
-		c.httpClient = httpClient
-	} else {
-		c.httpClient = http.DefaultClient
-	}
-	if skipVerify {
-		// #nosec
-		tr.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-		c.httpClient.Transport = tr
-	}
-	c.httpClient.Transport = tr
-
-	return c
+func (t TransPortAuthBasic) RoundTrip(r *http.Request) (*http.Response, error) {
+	r.Header.Set("Authorization", "Bearer "+t.Token)
+	return t.Transport.RoundTrip(r)
 }
 
 // dumpResponse writes the raw response data to the debug output, if set, or
@@ -127,7 +85,7 @@ func (c *client) dumpResponse(resp *http.Response) {
 	fmt.Fprintln(c.debug)
 }
 
-// apiCall define how you can make a call to Mtss API
+// apiCall define how you can make a call to API
 func (c *client) apiCall(
 	ctx context.Context,
 	method string,
@@ -140,7 +98,7 @@ func (c *client) apiCall(
 		return 0, "", fmt.Errorf("failed to create HTTP request: %v", err)
 	}
 	req.Header.Add("content-type", "application/json")
-	req.Header.Set("User-Agent", "qvapaygo-client/0.0")
+	req.Header.Add("User-Agent", "qvapay-go")
 	if c.debug != nil {
 		requestDump, err := httputil.DumpRequestOut(req, true)
 		if err != nil {
@@ -175,7 +133,41 @@ func DrainBody(respBody io.ReadCloser) {
 		// Without this closing connection would disallow re-using
 		// the same connection for future uses.
 		//  - http://stackoverflow.com/a/17961593/4465767
-		defer respBody.Close()
+		defer func(respBody io.ReadCloser) {
+			err := respBody.Close()
+			if err != nil {
+				log.Fatal(err)
+			}
+		}(respBody)
 		_, _ = io.Copy(ioutil.Discard, respBody)
 	}
+}
+
+// ParseUrlQueryParams ...
+func ParseUrlQueryParams(query QueryParams, requestUrl *url.URL) {
+	uv := url.Values{}
+	if query.Page != 0 {
+		uv.Add("page", strconv.Itoa(query.Page))
+	}
+
+	requestUrl.RawQuery = uv.Encode()
+}
+
+// APIError is used to describe errors from the API.
+// See https://docs.blockfrost.io/#section/Errors
+type APIError struct {
+	ErrorMessage interface{} `json:"error"`
+}
+
+func (e *APIError) Error() string {
+	return fmt.Sprintf("API Error, %+v", e.ErrorMessage)
+}
+
+func HandleAPIErrorResponse(response string) error {
+	var err error
+	errorApi := &APIError{}
+	if err = json.Unmarshal([]byte(response), errorApi); err != nil {
+		return err
+	}
+	return errorApi
 }

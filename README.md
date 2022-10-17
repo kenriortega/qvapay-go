@@ -1,5 +1,5 @@
 # qvapay-go
-A simple non-official client for qvapay service with go, for our comunity
+A simple non-official paymentClient for qvapay service with go, for our comunity
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 
@@ -16,17 +16,17 @@ go get github.com/kenriortega/qvapay-go
 Create your account to process payments through **QvaPay** at [qvapay.com/register](https://qvapay.com/register).
 
 
-## Using the client
+## Using the paymentClient
 
-First create your **QvaPay** client using your app credentials.
+First create your **QvaPay** paymentClient using your app credentials.
 
 ```go
-client := qvapaygo.NewClient(
+paymentClient := qvapaygo.NewClient(
     os.Getenv("APP_ID"), // app_id
     os.Getenv("SECRET_ID"), // secret_id
     qvapaygo.BaseURL, // constants url base https://qvapay.com/api
     false, // skip verificationSSL
-    nil, // custom http.Client
+    nil, // custom http.PaymentAppClient
     nil, // debug io.Writter (os.Stdout)
 )
 
@@ -34,7 +34,7 @@ client := qvapaygo.NewClient(
 ### Get your app info
 ```go
 ...
-info, err := client.GetInfo(context.Background())
+info, err := paymentClient.GetInfo(context.Background())
 if err != nil {
     log.Fatalf(err.Error())
 }
@@ -44,7 +44,7 @@ fmt.Println(info)
 ### Get your account balance
 ```go
 ...
-balance, err := client.GetBalance(context.Background())
+balance, err := paymentClient.GetBalance(context.Background())
 if err != nil {
     log.Fatalf(err.Error())
 }
@@ -55,7 +55,7 @@ fmt.Println(balance)
 
 ```go
 ...
-invoice, err := client.CreateInvoice(
+invoice, err := paymentClient.CreateInvoice(
     context.Background(),
     25.60,
     "Enanitos verdes",
@@ -71,7 +71,7 @@ fmt.Println(invoice)
 ```go
 ...
 inputId := "6507ee0d-db6c-4aa9-b59a-75dc7f6eab52"
-tx, err := client.GetTransaction(context.Background(), inputId)
+tx, err := paymentClient.GetTransaction(context.Background(), inputId)
 if err != nil {
     log.Fatalf(err.Error())
 }
@@ -80,7 +80,7 @@ fmt.Println(tx)
 ### Get transactions
 ```go
 ...
-txs, err := client.GetTransactions(context.Background())
+txs, err := paymentClient.GetTransactions(context.Background())
 if err != nil {
     log.Fatalf(err.Error())
 }

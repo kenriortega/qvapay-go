@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strconv"
 	"testing"
 	"time"
@@ -19,7 +20,16 @@ const (
 
 func Test_Invalid_URL(t *testing.T) {
 
-	api := qvapay.NewAPIClient(appID, secretID, "ht&@-tp://:aa", true, nil, nil)
+	api := qvapay.NewPaymentAppClient(
+		qvapay.Options{
+			BaseURL:    "ht&@-tp://:aa", // constants url base https://qvapay.com/api
+			HttpClient: nil,             // custom http.PaymentAppClient
+			Debug:      os.Stdout,       // debug io.Writter (os.Stdout)
+			AppID:      appID,           // app_id
+			SecretID:   secretID,        // secret_id
+			SkipVerify: false,           // skip verificationSSL
+		},
+	)
 
 	actual, err := api.GetInfo(context.Background())
 	assert.Error(t, err)
@@ -50,7 +60,16 @@ func Test_Get_Info(t *testing.T) {
 	)
 	defer s.Close()
 
-	client := qvapay.NewAPIClient(appID, secretID, s.URL, true, nil, nil)
+	client := qvapay.NewPaymentAppClient(
+		qvapay.Options{
+			BaseURL:    s.URL,     // constants url base https://qvapay.com/api
+			HttpClient: nil,       // custom http.PaymentAppClient
+			Debug:      os.Stdout, // debug io.Writter (os.Stdout)
+			AppID:      appID,     // app_id
+			SecretID:   secretID,  // secret_id
+			SkipVerify: false,     // skip verificationSSL
+		},
+	)
 	info, err := client.GetInfo(context.Background())
 	if err != nil {
 		t.Fatalf(err.Error())
@@ -78,7 +97,16 @@ func Test_Create_Invoice(t *testing.T) {
 		}),
 	)
 	defer s.Close()
-	client := qvapay.NewAPIClient(appID, secretID, s.URL, true, nil, nil)
+	client := qvapay.NewPaymentAppClient(
+		qvapay.Options{
+			BaseURL:    s.URL,     // constants url base https://qvapay.com/api
+			HttpClient: nil,       // custom http.PaymentAppClient
+			Debug:      os.Stdout, // debug io.Writter (os.Stdout)
+			AppID:      appID,     // app_id
+			SecretID:   secretID,  // secret_id
+			SkipVerify: false,     // skip verificationSSL
+		},
+	)
 	invoice, err := client.CreateInvoice(context.Background(), amountInput, "Enanitos verdes", "BRID56568989")
 	if err != nil {
 		t.Fatalf(err.Error())
@@ -129,7 +157,16 @@ func Test_Get_Txs(t *testing.T) {
 		}),
 	)
 	defer s.Close()
-	client := qvapay.NewAPIClient(appID, secretID, s.URL, true, nil, nil)
+	client := qvapay.NewPaymentAppClient(
+		qvapay.Options{
+			BaseURL:    s.URL,     // constants url base https://qvapay.com/api
+			HttpClient: nil,       // custom http.PaymentAppClient
+			Debug:      os.Stdout, // debug io.Writter (os.Stdout)
+			AppID:      appID,     // app_id
+			SecretID:   secretID,  // secret_id
+			SkipVerify: false,     // skip verificationSSL
+		},
+	)
 	query := qvapay.APIQueryParams{}
 	txs, err := client.GetTransactions(context.Background(), query)
 	if err != nil {
@@ -189,7 +226,16 @@ func Test_Get_Tx(t *testing.T) {
 		}),
 	)
 	defer s.Close()
-	client := qvapay.NewAPIClient(appID, secretID, s.URL, true, nil, nil)
+	client := qvapay.NewPaymentAppClient(
+		qvapay.Options{
+			BaseURL:    s.URL,     // constants url base https://qvapay.com/api
+			HttpClient: nil,       // custom http.PaymentAppClient
+			Debug:      os.Stdout, // debug io.Writter (os.Stdout)
+			AppID:      appID,     // app_id
+			SecretID:   secretID,  // secret_id
+			SkipVerify: false,     // skip verificationSSL
+		},
+	)
 	tx, err := client.GetTransaction(context.Background(), inputId)
 	if err != nil {
 		t.Fatalf(err.Error())
@@ -211,7 +257,16 @@ func Test_Get_Balance(t *testing.T) {
 	)
 	defer s.Close()
 
-	client := qvapay.NewAPIClient(appID, secretID, s.URL, true, nil, nil)
+	client := qvapay.NewPaymentAppClient(
+		qvapay.Options{
+			BaseURL:    s.URL,     // constants url base https://qvapay.com/api
+			HttpClient: nil,       // custom http.PaymentAppClient
+			Debug:      os.Stdout, // debug io.Writter (os.Stdout)
+			AppID:      appID,     // app_id
+			SecretID:   secretID,  // secret_id
+			SkipVerify: false,     // skip verificationSSL
+		},
+	)
 	balance, err := client.GetBalance(context.Background())
 	if err != nil {
 		t.Fatalf(err.Error())
